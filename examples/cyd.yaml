@@ -1,0 +1,133 @@
+# Ready-to-flash example for the ESP32-2432S028R "Cheap Yellow Display"
+# (Sunton/JCZN) - the specific board most commonly sold under the generic
+# "CYD" name: 2.8", resistive touch, ILI9341. Other boards also marketed as
+# "CYD" (different sizes, capacitive touch, ST7789, etc.) use different
+# pins/drivers - this file is only proven-correct for this exact variant.
+#
+# Unlike examples/minimal.yaml (a generic template with placeholder pins to
+# adapt to your own panel), every pin and driver setting below is the real,
+# working wiring for this board, carried over from a device that's actually
+# run this component in daily use.
+esphome:
+  name: screenshot-cyd
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+wifi:
+  ssid: "your-wifi-ssid"
+  password: "your-wifi-password"
+
+web_server_base:
+  id: web_server_base_id
+
+external_components:
+  - source: github://NickLD/esphome-nopsram-streaming-screenshot
+    components: [screenshot]
+
+# GET http://screenshot-cyd.local/screenshot.bmp returns a live BMP capture
+# of whatever LVGL is currently rendering - no PSRAM required. width/height
+# match this board's logical canvas after the lvgl `rotation: 90` below
+# turns its native 240x320 portrait panel into a 320x240 landscape one.
+screenshot:
+  id: my_screenshot
+  web_server_base_id: web_server_base_id
+  width: 320
+  height: 240
+
+# GPIO12, GPIO15 and GPIO2 below are ESP32 strapping pins (boot-mode/
+# flash-voltage select), which normally earns a compile warning. On this
+# board they're hard-wired by the manufacturer to the TFT's MISO/CS/DC
+# lines - not pins this config chose or can move without reworking the
+# PCB. This is the stock, known-working wiring for this board, so the
+# warning is acknowledged explicitly per-pin below rather than left as
+# compile noise.
+spi:
+  - id: tft
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin:
+      number: GPIO12
+      ignore_strapping_warning: true
+
+  - id: touch
+    clk_pin: GPIO25
+    mosi_pin: GPIO32
+    miso_pin: GPIO39
+
+display:
+  - platform: mipi_spi
+    id: my_display
+    model: ILI9341
+    spi_id: tft
+    cs_pin:
+      number: GPIO15
+      ignore_strapping_warning: true
+    dc_pin:
+      number: GPIO2
+      ignore_strapping_warning: true
+    auto_clear_enabled: false
+    invert_colors: false
+    color_order: RGB
+    dimensions:
+      width: 240
+      height: 320
+      offset_width: 0
+      offset_height: 0
+      pad_width: 0
+      pad_height: 0
+    transform:
+      swap_xy: true
+      mirror_y: false
+      mirror_x: false
+
+# PLACEHOLDER CALIBRATION - x_min/x_max/y_min/y_max below are copied from
+# one specific physical unit and are NOT guaranteed to match yours. Touch
+# calibration varies per panel, not just per board model. Treat these as a
+# starting point: if touch feels offset or unresponsive, run ESPHome's own
+# touchscreen calibration process (or log raw touch.x/touch.y via an
+# on_touch lambda and derive your own min/max) rather than assuming these
+# numbers are correct for your unit.
+touchscreen:
+  platform: xpt2046
+  id: my_touchscreen
+  spi_id: touch
+  cs_pin: GPIO33
+  calibration:
+    x_min: 220
+    x_max: 3756
+    y_min: 394
+    y_max: 3749
+  transform:
+    swap_xy: false
+    mirror_x: false
+    mirror_y: true
+
+output:
+  - platform: ledc
+    pin: GPIO21
+    id: backlight_pwm
+
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    name: Display Backlight
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+lvgl:
+  rotation: 90
+  displays:
+    - my_display
+  touchscreens:
+    - my_touchscreen
+  pages:
+    - id: page_main
+      widgets:
+        - label:
+            text: "Hello from LVGL"
+            align: CENTER

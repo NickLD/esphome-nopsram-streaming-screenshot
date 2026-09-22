@@ -51,7 +51,11 @@ screenshot:
   height: 240  # must match your LVGL logical canvas height (post-rotation)
 ```
 
-See `examples/minimal.yaml` for a complete, working config.
+See `examples/minimal.yaml` for a complete, working config with placeholder
+pins to adapt to your own panel, or `examples/cyd.yaml` for a ready-to-flash
+config for the specific board most commonly sold as a "CYD" (ESP32-2432S028R,
+2.8", resistive touch, ILI9341) — real wiring, no adaptation needed beyond
+your WiFi credentials.
 
 ### Config keys
 
