@@ -21,7 +21,7 @@ web_server_base:
   id: web_server_base_id
 
 external_components:
-  - source: github://NickLD/esphome-nopsram-streaming-screenshot
+  - source: github://NickLD/esphome-nopsram-streaming-screenshot@v1.0.0
     components: [screenshot]
 
 # GET http://screenshot-example.local/screenshot.bmp returns a live,

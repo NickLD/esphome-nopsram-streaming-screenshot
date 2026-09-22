@@ -38,7 +38,7 @@ endpoint, ay129-35MR's project is a better fit than this one.
 
 ```yaml
 external_components:
-  - source: github://NickLD/esphome-nopsram-streaming-screenshot
+  - source: github://NickLD/esphome-nopsram-streaming-screenshot@v1.0.0
     components: [screenshot]
 
 web_server_base:
@@ -65,6 +65,16 @@ your WiFi credentials.
 | `web_server_base_id` | no       | ID of a `web_server_base:` instance to register the handler on — auto-resolves to your config's single `web_server_base:` instance if omitted. |
 | `width`              | yes      | LVGL logical canvas width in pixels (post-rotation, if rotated).     |
 | `height`             | yes      | LVGL logical canvas height in pixels (post-rotation, if rotated).    |
+
+## Versioning
+
+Releases follow semver as git tags (`v1.0.0`, ...) with matching [GitHub
+Releases](https://github.com/NickLD/esphome-nopsram-streaming-screenshot/releases).
+**Pin a tag in your `source:` line** (as in the examples above) rather than
+tracking `master` unpinned — an unpinned source follows whatever's newest,
+including any future breaking change, with nothing protecting your build.
+A breaking API change (e.g. a renamed or restructured config key) bumps the
+major version; non-breaking fixes/additions bump minor/patch.
 
 ## Known limitations
 
