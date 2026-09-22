@@ -1,0 +1,64 @@
+# Minimal example: an ESP32 + ILI9341 display with the screenshot endpoint
+# enabled. Swap the `display:`/`spi:` block for your own panel's pins and
+# driver - everything else here is what this component actually needs.
+esphome:
+  name: screenshot-example
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+wifi:
+  ssid: "your-wifi-ssid"
+  password: "your-wifi-password"
+
+# The screenshot component registers its HTTP handler on this bare httpd
+# instance - it needs to exist, but nothing else about it is special.
+web_server_base:
+  id: web_server_base_id
+
+external_components:
+  - source: github://NickLD/esphome-nopsram-streaming-screenshot
+    components: [screenshot]
+
+# GET http://screenshot-example.local/screenshot.bmp returns a live,
+# pixel-perfect BMP of whatever LVGL is currently rendering - no PSRAM
+# required. width/height must match your LVGL logical canvas size (i.e.
+# post-rotation, if you rotate).
+screenshot:
+  id: my_screenshot
+  web_server_base_id: web_server_base_id
+  width: 320
+  height: 240
+
+spi:
+  id: tft
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+display:
+  - platform: mipi_spi
+    id: my_display
+    model: ILI9341
+    spi_id: tft
+    cs_pin: GPIO22
+    dc_pin: GPIO21
+    dimensions:
+      width: 240
+      height: 320
+    transform:
+      swap_xy: true
+
+lvgl:
+  displays:
+    - my_display
+  pages:
+    - id: page_main
+      widgets:
+        - label:
+            text: "Hello from LVGL"
+            align: CENTER
