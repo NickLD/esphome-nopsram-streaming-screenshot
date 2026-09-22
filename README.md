@@ -13,6 +13,13 @@ returns an uncompressed 24bpp BMP of whatever LVGL is currently displaying.
 No auth, no query params. A request forces a synchronous redraw first, so
 it always reflects live state, not a stale buffer.
 
+## Requirements
+
+- ESP32 (this hooks ESP-IDF's native `esp_http_server`, not Arduino's ESPAsyncWebServer)
+- `esp32: framework: type: esp-idf` in your device's config
+- ESPHome's `lvgl:` component (LVGL 9)
+- Tested against ESPHome 2026.9.0. Uses a couple of relatively recent `web_server_base`/`AsyncWebHandler` APIs (`canHandle(...) const`, `url_to()`) — an old enough ESPHome version may not have them.
+
 ## Why not an existing project?
 
 Two other ESPHome/LVGL screenshot components already exist
@@ -51,7 +58,7 @@ See `examples/minimal.yaml` for a complete, working config.
 | Key                 | Required | Description                                                        |
 |----------------------|----------|----------------------------------------------------------------------|
 | `id`                 | no       | Component ID, auto-generated if omitted.                            |
-| `web_server_base_id` | yes      | ID of a `web_server_base:` instance to register the handler on.     |
+| `web_server_base_id` | no       | ID of a `web_server_base:` instance to register the handler on — auto-resolves to your config's single `web_server_base:` instance if omitted. |
 | `width`              | yes      | LVGL logical canvas width in pixels (post-rotation, if rotated).     |
 | `height`             | yes      | LVGL logical canvas height in pixels (post-rotation, if rotated).    |
 
@@ -74,6 +81,7 @@ See `examples/minimal.yaml` for a complete, working config.
   real devices with different display-driver `color_order` settings — but
   a non-default LVGL color depth/byte-order *build* setting (rare) is not
   defended against. See the comments in `screenshot.h` for detail.
+- **Blocks the main loop during capture.** Row handoff to the HTTP client is fully serialized on the main loop task (a deliberate RAM-vs-speed trade, not a bug) — the whole device (touch input, other components' `loop()`s, the HA API connection) stalls for the duration of a capture: ~1.7s typical on a 480x320 panel per this component's own internal measurements, bounded by a 15-second budget in the worst case (a stalled or very slow client).
 
 ## License
 
