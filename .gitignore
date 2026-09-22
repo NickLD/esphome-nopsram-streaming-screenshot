@@ -1,0 +1,16 @@
+# Internal planning docs - not part of the published component
+docs/superpowers/
+
+# SDD scratch workspace (ledger, briefs, reports, review packages)
+.superpowers/
+
+# ESPHome / PlatformIO build artifacts
+.esphome/
+.pio/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
